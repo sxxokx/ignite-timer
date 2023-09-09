@@ -8,16 +8,16 @@ import * as zod from 'zod'
 
 const newCycleFormValidationSchema = zod.object({
     task:  zod.string().min(1 , 'Informe a tarefa').max(20),
-    minutesAmout: zod.number()
+    minutesAmount: zod.number()
     .min(5, 'O ciclo precisa ser de no mínimo 5 minutos')
     .max(60, 'O ciclo precisa ser de no máximo 60 minutos'),
 })
 
-interface NewCycleFormData {
-    task : string,
-    minutesAmount : number
-}
-//type NewCycleFormData = zod.infer<typeof newCycleFormValidationSchema>
+//interface NewCycleFormData {
+//    task : string,
+//    minutesAmount : number
+//}
+type NewCycleFormData = zod.infer<typeof newCycleFormValidationSchema>
 
     interface Cycle {
         id: string,
@@ -38,15 +38,22 @@ export const Home = () => {
 
     })
     function handleCreateNewCyle(data: NewCycleFormData) {
+        const id =  String(new Date().getTime());
+
         const newCycle: Cycle = {
-            id: String(new Date().getTime()),
+            id,
             task: data.task,
             minutesAmount: data.minutesAmount,
         }
-        setCycles((state) => [...cycles, newCycle])
+        setCycles((state) => [...state, newCycle])
+        setActiveCycleID(id)
         
         reset();
     }
+
+    const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
+    console.log(activeCycle)
+
     const task = watch('task')
     const isSubmitDisabled = !task
 
