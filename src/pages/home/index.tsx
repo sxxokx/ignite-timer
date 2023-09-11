@@ -28,6 +28,7 @@ type NewCycleFormData = zod.infer<typeof newCycleFormValidationSchema>
 export const Home = () => {
     const [cycles, setCycles] = useState<Cycle[]>([])
     const [activeCycleId, setActiveCycleID] =  useState<string | null>(null)
+    const [amountSecondsPassed, setAmountSecondsPassed] = useState(0)
 
     const { register, handleSubmit, watch, reset} = useForm<NewCycleFormData>({
         resolver: zodResolver(newCycleFormValidationSchema),
@@ -53,6 +54,9 @@ export const Home = () => {
 
     const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
     console.log(activeCycle)
+
+    const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 
+
 
     const task = watch('task')
     const isSubmitDisabled = !task
