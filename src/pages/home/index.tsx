@@ -1,5 +1,5 @@
-import { Play } from "phosphor-react"
-import { CountdownContainer, FormContainer, HomeContainer, MinutesAmountInput, Separator, StartCountdownButton, TaskInput } from "./style"
+import { HandPalm, Play } from "phosphor-react"
+import { CountdownContainer, FormContainer, HomeContainer, MinutesAmountInput, Separator, StartCountdownButton, StopCountdownButton, TaskInput } from "./style"
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver} from '@hookform/resolvers/zod'
@@ -10,7 +10,7 @@ import { differenceInSeconds } from "date-fns"
 const newCycleFormValidationSchema = zod.object({
     task:  zod.string().min(1 , 'Informe a tarefa').max(20),
     minutesAmount: zod.number()
-    .min(5, 'O ciclo precisa ser de no mínimo 5 minutos')
+    .min(1, 'O ciclo precisa ser de no mínimo 5 minutos')
     .max(60, 'O ciclo precisa ser de no máximo 60 minutos'),
 })
 
@@ -25,6 +25,8 @@ type NewCycleFormData = zod.infer<typeof newCycleFormValidationSchema>
         task: string,
         minutesAmount: number
         startDate: Date
+        interruptedDate?: Date
+        finishedDate?: Date
     }
 
 export const Home = () => {
@@ -42,15 +44,30 @@ export const Home = () => {
     })
 
     const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
-    
+    const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0;
+
     useEffect(() => {
        let interval: any
        
        if (activeCycle){
-            interval = setInterval(() => {
-                setAmountSecondsPassed(
-                    differenceInSeconds(new Date(), activeCycle.startDate),
-                )
+             interval = setInterval(() => {
+                 const secondsDiferrence = differenceInSeconds(
+                    new Date(), activeCycle.startDate)
+
+                    if (secondsDiferrence >= totalSeconds){
+                        setCycles((state) => 
+                            state.map(cycle => {
+                                if (cycle.id === activeCycleId){
+                                  return {...cycle, finishedDate: new Date()}
+                                } else {
+                                    return cycle
+                             }
+                         }))
+                         setAmountSecondsPassed(totalSeconds)
+                         clearInterval(interval)
+                    } else {
+                        setAmountSecondsPassed(secondsDiferrence)
+                    }    
             }, 1000)
         }
 
@@ -58,7 +75,7 @@ export const Home = () => {
             clearInterval(interval)
         }
 
-    }, [activeCycle])
+    }, [activeCycle, activeCycleId, totalSeconds])
 
 
     function handleCreateNewCyle(data: NewCycleFormData) {
@@ -77,9 +94,21 @@ export const Home = () => {
         reset();
     }
 
+    function handleInterruptCycle() {
+        setActiveCycleID(null)
+        
+        setCycles((state) =>
+            state.map(cycle => {
+            if (cycle.id === activeCycleId){
+                return {...cycle, interruptedDate: new Date()}
+            } else {
+                return cycle
+            }
+        }))
+    }
     
 
-    const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0;
+    
     const currentSeconds = activeCycle ? totalSeconds - amountSecondsPassed : 0;
 
     const minutesAmount = Math.floor(currentSeconds / 60)
@@ -96,14 +125,16 @@ export const Home = () => {
 
     const task = watch('task')
     const isSubmitDisabled = !task
-
+    console.log(cycles)
     return (
         <HomeContainer>
             <form onSubmit={handleSubmit(handleCreateNewCyle)} action="">
                 <FormContainer>
                     <label htmlFor="task">Vou trabalhar em</label>
-                    <TaskInput id="task" list="task-suggestions"
+                    <TaskInput
+                     id="task" list="task-suggestions"
                      placeholder="Dê um nome para o seu projeto"
+                     disabled={!!activeCycle}
                      {...register('task')} />
                      
                     <datalist id="task-suggestions">
@@ -113,8 +144,11 @@ export const Home = () => {
                     </datalist>
 
                     <label htmlFor="minutesAmount">durante</label>
-                    <MinutesAmountInput type="number" id="minutesAmount"
-                     placeholder="00" step={5} min={5} max={60} 
+                    <MinutesAmountInput
+                     type="number"
+                      id="minutesAmount"
+                     placeholder="00" step={5} min={1} max={60}
+                     disabled={!!activeCycle} 
                      {...register('minutesAmount', {valueAsNumber: true})}/>
 
                     <span>minutos.</span>
@@ -128,10 +162,20 @@ export const Home = () => {
                     <span>{seconds[0]}</span>
                     <span>{seconds[1]}</span>
                 </CountdownContainer>
-                <StartCountdownButton disabled={isSubmitDisabled} type="submit">
-                    <Play size={24} />
-                    Começar
-                </StartCountdownButton>
+                
+                { activeCycle ?(
+                    
+                    <StopCountdownButton onClick={handleInterruptCycle} type="button">
+                        <HandPalm size={24} />
+                        Interromper
+                    </StopCountdownButton>
+                )
+                :(
+                    <StartCountdownButton disabled={isSubmitDisabled} type="submit">
+                        <Play size={24} />
+                        Começar
+                    </StartCountdownButton>     
+                )}
             </form>
         </HomeContainer>
     )
