@@ -1,4 +1,4 @@
-import { createContext, useState } from "react";
+import { ReactNode, createContext, useState } from "react";
 
 
 
@@ -29,9 +29,11 @@ interface CyclesContextType {
 export const CycleContext = createContext({} as CyclesContextType) 
 
 
+interface CyclesContexProviderProps{
+    children: ReactNode
+}
 
-
-export function CyclesContextProvider(){
+export function CyclesContextProvider({children}: CyclesContexProviderProps){
 
     const [cycles, setCycles] = useState<Cycle[]>([])
     const [activeCycleId, setActiveCycleID] =  useState<string | null>(null)

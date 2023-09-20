@@ -6,11 +6,7 @@ import { zodResolver} from '@hookform/resolvers/zod'
 import * as zod from 'zod'
 import { NewCycleForm } from "./components/NewCycleForm"
 import { Contdown } from "./components/Countdown"
-import { createContext} from "react"
-
-
-   
-    
+  
    const newCycleFormValidationSchema = zod.object({
     task:  zod.string().min(1 , 'Informe a tarefa').max(20),
     minutesAmount: zod.number()
