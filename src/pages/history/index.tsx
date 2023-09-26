@@ -1,4 +1,4 @@
-import { useContext, useReducer } from "react"
+import { useContext } from "react"
 import { formatDistanceToNow } from 'date-fns'
 import ptBR from 'date-fns/locale/pt-BR'
 import { HistoryContainer, HistoryList, Status } from "./style"
