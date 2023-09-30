@@ -80,5 +80,4 @@ export function CyclesContextProvider({children}: CyclesContexProviderProps){
                 {children}
         </CycleContext.Provider>
     )
-
 }
